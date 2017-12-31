@@ -5,8 +5,11 @@ Build a logic for Enneagram Survey Application
 
 ## Interface
 * void readAll()
+
 Read all of Mapped data in Data instance from Mysql connection
+
 * void sendEvent(int type, int value)
+
 Add values to Array in Data instance for finding appropriate type of the user
 
 ## Before getting started
