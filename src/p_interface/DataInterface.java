@@ -1,6 +1,6 @@
 package p_interface;
 
 public interface DataInterface {
-	public String findAll();
-	public String findOne();
+	public void readAll();
+	public void sendEvent(int type, int value);
 }

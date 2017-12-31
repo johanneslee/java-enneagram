@@ -4,29 +4,29 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.google.gson.Gson;
+import p_config.Config;
+import p_interface.DBInterface;
 
-import p_interface.DataInterface;
-
-public class DBConnection implements DataInterface {
+public class DBConnection implements DBInterface {
 	private Connection conn = null;
 	private PreparedStatement pstmt = null;
 	private ResultSet rs = null;
+	private ResultSetMetaData md = null;
+	private int columns = 0;
+	List<Map<String, Object>> rows = null;
 	
 	public DBConnection() {
-		System.out.println("DBConnection Constructor is started");
+		Config config = new Config();
 		
 		try {
-			String url = "jdbc:mysql://us-cdbr-iron-east-05.cleardb.net/heroku_f55f228bd4e98f2";
-			String id = "b0fbbd0580f94e";
-			String pw = "d7df589b";
-	
 			Class.forName("com.mysql.jdbc.Driver");
-			conn = DriverManager.getConnection(url, id, pw);			
+			conn = DriverManager.getConnection(config.getUrl(), config.getId(), config.getPw());			
 		}
 		catch(Exception e) { 
 			e.printStackTrace();
@@ -34,44 +34,28 @@ public class DBConnection implements DataInterface {
 	}
 
 	@Override
-	public String findAll() {
-		String jsonData = null;
-		
-		System.out.println("FindAll() is started.");
+	public List<Map<String, Object>> findAll() {		
 		try {
-			String sql = "SELECT type, question FROM enneagram_data";
+			String sql = "SELECT id, type, question FROM enneagram_data";
 			pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
-			jsonData = convertToJSON(rs);
+			md = rs.getMetaData();
+			
+			columns = md.getColumnCount();			
+			rows = new ArrayList<Map<String, Object>>();
+			Map<String, Object> row = null;
+		    while(rs.next()){
+		        row = new HashMap<String, Object>(columns);
+		        for(int i = 1; i <= columns; ++i){
+		            row.put(md.getColumnName(i), rs.getObject(i));
+		        }
+		        rows.add(row);
+		    }
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-		}
+		}		
 		
-		return jsonData;		
-	}
-
-	@Override
-	public String findOne() {
-		return null;		
-	}
-	
-	private String convertToJSON(ResultSet tmpRs) {
-        ArrayList<Map<String, String>> list = new ArrayList<>();
-        Map<String, String> map = new HashMap<>();
-        
-        try {
-	        while (tmpRs.next()) {
-	            map.put("type", rs.getString("type"));
-	            map.put("question", rs.getString("question"));
-	            
-	            list.add(map);
-	        }
-        }
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-        
-        return new Gson().toJson(list);
+		return rows;		
 	}
 }

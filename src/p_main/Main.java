@@ -4,6 +4,7 @@ import p_model.Data;
 
 public class Main {
 	public static void main(String[] args) {
-		Data data = new Data();
+		Data data = Data.getInstance();
+		data.readAll();
 	}
 }
